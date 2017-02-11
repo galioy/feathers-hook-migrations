@@ -3,11 +3,15 @@
  */
 
 const Umzug = require('umzug')
-  , app = require('../app')
-  , errors = require('feathers-errors')
-  , Sequelize = app.get('Sequelize')
-  , sequelize = app.get('sequelize')
-  , log = app.get('log').child({module: 'migration-service'});
+  , Sequelize = require('sequelize');
+
+const Migrations = function (settings) {
+  this.framework = settings.framework;
+  this.sequelize = settings.sequelize;
+  this.log = settings.log ? settings.log : console.log;
+  this.storage = settings.storageType ? settings.storageType : 'sequelize';
+  this.path = settings.migrationsPath ? settings.migrationsPath : '/app/migrations';
+};
 
 /**
  * Instantiate and initialize Umzug (a migration tool) from already loaded DB connection settings in Sails config and
@@ -15,12 +19,15 @@ const Umzug = require('umzug')
  *
  * @returns {object}  Umzug The umzug instance that will run the migrations operations
  */
-function initUmzug() {
-  const sequelizeInstance = new Sequelize(app.get('postgres_migration'));
+Migrations.prototype.init = function () {
+  let sequelizeInstance = this.sequelize;
+  if (!sequelizeInstance.getQueryInterface() && !sequelizeInstance.constructor) {
+    sequelizeInstance = new Sequelize(this.sequelize);
+  }
 
-  return new Umzug({
-    storage: 'sequelize',
-    logging: log.info,
+  this.umzug = new Umzug({
+    storage: this.storage,
+    logging: this.log,
     storageOptions: {
       sequelize: sequelizeInstance
     },
@@ -33,10 +40,19 @@ function initUmzug() {
       /*
        * The path to the migrations dir
        */
-      path: '/app/migrations'
+      path: this.path
     }
   });
-}
+
+  if (this.framework == 'feathers') {
+    const app = requre('../../src/app');
+    app.set('migrations', this);
+  } else if (this.framework == 'sails') {
+    sails.migrations = this;
+  } else {
+    return new Error(`Framework with name ${this.framework} is not recognized. Available options are 'feathers' or 'sails'.`);
+  }
+};
 
 /**
  * Perform the execution of the migrations.
@@ -48,34 +64,28 @@ function initUmzug() {
  *                            toMigration: {string} - (optional) Name of the migration to which to rollback to
  *                          }
  */
-function executeMigrations(options) {
-  const umzug = initUmzug();
-
+Migrations.prototype.execute = function (options) {
   const toMigration = options.toMigration ? {to: options.toMigration} : undefined
     , command = options.command;
 
   let action;
   if (options.command == 'migrate') {
-    action = umzug.up();
+    action = this.umzug.up();
   } else if (options.command == 'rollback') {
-    action = umzug.down(toMigration);
+    action = this.umzug.down(toMigration);
   } else {
-    return Promise.reject(new errors.GeneralError(`The command "${options.command}" is not a valid migrations action.`));
+    return Promise.reject(new Error(`The command "${options.command}" is not a valid migrations action.`));
   }
 
   return action
-      .then(migrations => {
+    .then(migrations => {
       const resultText = migrations.length > 0 ? `The migrations have been ${command}d successfully!`
         : 'No migrations needed to be executed!';
-  log.info({subModule: 'execute-migrations'}, resultText);
-})
-.catch(err => {
-    log.error({subModule: 'execute-migrations', err}, `One or more migrations could not be ${command}d. ` +
-    'Check table SequelizeMeta to see a list of migrations that have been executed so far.');
-  return Promise.reject(err);
-});
-}
-
-module.exports = {
-  executeMigrations: executeMigrations
+      this.log(resultText);
+    })
+    .catch(err => {
+      return Promise.reject(err);
+    });
 };
+
+module.exports = Migrations;

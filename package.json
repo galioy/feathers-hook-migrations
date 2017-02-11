@@ -6,9 +6,13 @@
   "scripts": {
     "test": "test"
   },
-  "author": "Galin Kostov <galioy1024@gmail.com>",
-  "license": "MIT",
+  "bin": {
+    "migration": "./bin/migrations.js"
+  },
   "dependencies": {
+    "sequelize": "^3.30.2",
     "umzug": "^1.11.0"
-  }
+  },
+  "author": "Galin Kostov <galioy1024@gmail.com>",
+  "license": "MIT"
 }
