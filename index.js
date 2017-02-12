@@ -44,14 +44,8 @@ Migrations.prototype.init = function () {
     }
   });
 
-  if (this.framework == 'feathers') {
-    const app = requre('../../src/app');
-    app.set('migrations', this);
-  } else if (this.framework == 'sails') {
-    sails.migrations = this;
-  } else {
-    return new Error(`Framework with name ${this.framework} is not recognized. Available options are 'feathers' or 'sails'.`);
-  }
+  const app = requre('../../src/app');
+  app.set('migrations', this);
 };
 
 /**

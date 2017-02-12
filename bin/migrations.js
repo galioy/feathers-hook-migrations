@@ -30,27 +30,15 @@
  * @returns {boolean}
  */
 function run() {
-  const framework = process.argv[2]
-    , command = process.argv[3] || ''
-    , toMigration = process.argv[4] || undefined;
-
-  let migrations;
-
-  if (framework == 'feathers') {
-    const app = requre('../../src/app');
-    migrations = app.get('migrations');
-  } else if (framework == 'sails') {
-    migrations = sails.migrations;
-  } else {
-    console.log(`Framework with name ${framework} is not recognized. Available options are 'feathers' or 'sails'.`);
-    process.exit(1);
-  }
+  const command = process.argv[2] || ''
+    , toMigration = process.argv[3] || undefined;
 
   if (command != 'migrate' && command != 'rollback') {
     console.log(`Invalid command '${command}'. Please use 'migrate' or 'rollback'.`);
     process.exit(1);
   }
 
+  const migrations = app.get('migrations');
   return migrations.execute({command, toMigration})
     .then(() => {
       process.exit(0);
