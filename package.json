@@ -7,7 +7,7 @@
     "test": "test"
   },
   "bin": {
-    "migration": "./bin/migrations.js"
+    "migrations": "./bin/migrations.js"
   },
   "dependencies": {
     "sequelize": "^3.30.2",

@@ -6,11 +6,11 @@ const Umzug = require('umzug')
   , Sequelize = require('sequelize');
 
 const Migrations = function (settings) {
-  this.framework = settings.framework;
+  this.app = settings.app;
   this.sequelize = settings.sequelize;
   this.log = settings.log ? settings.log : console.log;
   this.storage = settings.storageType ? settings.storageType : 'sequelize';
-  this.tableName = settings.migrationsTableName ? settings.migrationsTableName : 'SequelizeMeta';
+  this.tableName = settings.tableName ? settings.tableName : 'SequelizeMeta';
   this.path = settings.migrationsPath ? settings.migrationsPath : '/app/migrations';
 };
 
@@ -28,7 +28,7 @@ Migrations.prototype.init = function () {
 
   this.umzug = new Umzug({
     storage: this.storage,
-    logging: this.log,
+    logging: this.log.info.bind(this.log),
     storageOptions: {
       sequelize: sequelizeInstance,
       tableName: this.tableName
@@ -46,8 +46,7 @@ Migrations.prototype.init = function () {
     }
   });
 
-  const app = requre('../../src/app');
-  app.set('migrations', this);
+  this.app.set('migrations', this);
 };
 
 /**
@@ -77,9 +76,10 @@ Migrations.prototype.execute = function (options) {
     .then(migrations => {
       const resultText = migrations.length > 0 ? `The migrations have been ${command}d successfully!`
         : 'No migrations needed to be executed!';
-      this.log(resultText);
+      this.log.info(resultText);
     })
     .catch(err => {
+      this.log.error({err}, `An error occurred while trying to ${command} the migrations.`);
       return Promise.reject(err);
     });
 };

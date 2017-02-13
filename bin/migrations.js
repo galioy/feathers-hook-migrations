@@ -38,6 +38,7 @@ function run() {
     process.exit(1);
   }
 
+  const app = require('../../src/app');
   const migrations = app.get('migrations');
   return migrations.execute({command, toMigration})
     .then(() => {
