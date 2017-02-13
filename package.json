@@ -1,5 +1,5 @@
 {
-  "name": "auto-exec-migrations",
+  "name": "feathers-hook-migrations",
   "version": "0.0.1",
   "description": "A module that executes migrations upon server lift. It takes use of the Umzug and Sequelize libraries.",
   "main": "index.js",

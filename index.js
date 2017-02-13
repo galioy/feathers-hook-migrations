@@ -10,6 +10,7 @@ const Migrations = function (settings) {
   this.sequelize = settings.sequelize;
   this.log = settings.log ? settings.log : console.log;
   this.storage = settings.storageType ? settings.storageType : 'sequelize';
+  this.tableName = settings.migrationsTableName ? settings.migrationsTableName : 'SequelizeMeta';
   this.path = settings.migrationsPath ? settings.migrationsPath : '/app/migrations';
 };
 
@@ -29,7 +30,8 @@ Migrations.prototype.init = function () {
     storage: this.storage,
     logging: this.log,
     storageOptions: {
-      sequelize: sequelizeInstance
+      sequelize: sequelizeInstance,
+      tableName: this.tableName
     },
     migrations: {
       /*
@@ -38,7 +40,7 @@ Migrations.prototype.init = function () {
        */
       params: [sequelizeInstance.getQueryInterface(), sequelizeInstance.constructor],
       /*
-       * The path to the migrations dir
+       * The path to the migrations dir, relative to the root dir
        */
       path: this.path
     }
