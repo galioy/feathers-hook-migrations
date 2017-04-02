@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Created by gako on 19/01/17.
+ * Created by gako on 11/02/17.
  */
 "use strict";
 
@@ -33,12 +33,19 @@ function run() {
   const command = process.argv[2] || ''
     , toMigration = process.argv[3] || undefined;
 
-  if (command != 'migrate' && command != 'rollback') {
+  if (command !== 'migrate' && command !== 'rollback') {
     console.log(`Invalid command '${command}'. Please use 'migrate' or 'rollback'.`);
     process.exit(1);
   }
 
-  const app = require('../../../src/app');
+  let app;
+  try {
+    app = require('../../../src/app');
+  } catch (e) {
+    console.log.error('The global app object is not located in its default path "../../../src/app", which ' +
+      'is relative to this script. Could not load the app object.');
+    process.exit(1);
+  }
 
   return app.get('migrations').execute({command, toMigration})
     .then(() => {
