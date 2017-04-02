@@ -5,6 +5,20 @@
 const Umzug = require('umzug')
   , Sequelize = require('sequelize');
 
+/**
+ * Constructor
+ *
+ * @param {object} settings
+ * {
+ *  app: {obj},       // The feathers' global app object.
+ *  sequelize: {obj}, // The already initialized Sequelize instance.
+ *  log: {obj},       // A logger object to handle the logging. If not provided, `console.log` is used instead.
+ *  storage: {obj},   // The type of storage to be used - see Umzug's docs. Default is 'sequelize'.
+ *  tableName: {obj}, // The name of the table where the migrations will be tracked, in case 'sequelize' is used as storage.
+ *  path: {obj}       // The physical path (dir) where the migrations files are stored. Must be typed relative to the root dir
+ * }
+ * @constructor
+ */
 const Migrations = function (settings) {
   this.app = settings.app;
   this.sequelize = settings.sequelize;
@@ -15,10 +29,11 @@ const Migrations = function (settings) {
 };
 
 /**
- * Instantiate and initialize Umzug (a migration tool) from already loaded DB connection settings in Sails config and
+ * Instantiate and initialize Umzug (a migration tool) from already loaded DB connection settings in the server app, and
  * additional options.
  *
- * @returns {object}  Umzug The umzug instance that will run the migrations operations
+ * Set the initialized Umzug object as a property of this module and then set the module as property of the
+ * global server app object.
  */
 Migrations.prototype.init = function () {
   let sequelizeInstance = this.sequelize;
@@ -52,7 +67,6 @@ Migrations.prototype.init = function () {
 /**
  * Perform the execution of the migrations.
  *
- * TO BE EXTENDED WITH:
  * @param {object}  options Contains the following properties:
  *                          {
  *                            command: {string}, - The command designating what to do - 'migrate' or 'rollback'
@@ -64,21 +78,21 @@ Migrations.prototype.execute = function (options) {
     , command = options.command;
 
   let action;
-  if (options.command == 'migrate') {
+  if (options.command === 'migrate') {
     action = this.umzug.up();
-  } else if (options.command == 'rollback') {
+  } else if (options.command === 'rollback') {
     action = this.umzug.down(toMigration);
   } else {
     return Promise.reject(new Error(`The command "${options.command}" is not a valid migrations action.`));
   }
 
   return action
-    .then(migrations => {
+    .then((migrations) => {
       const resultText = migrations.length > 0 ? `The migrations have been ${command}d successfully!`
         : 'No migrations needed to be executed!';
       this.log.info(resultText);
     })
-    .catch(err => {
+    .catch((err) => {
       this.log.error({err}, `An error occurred while trying to ${command} the migrations.`);
       return Promise.reject(err);
     });

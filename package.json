@@ -1,6 +1,6 @@
 {
   "name": "feathers-hook-migrations",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A module that executes migrations upon server lift. It takes use of the Umzug and Sequelize libraries.",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,9 @@
     "sequelize": "^3.30.2",
     "umzug": "^1.11.0"
   },
-  "author": "Galin Kostov <galioy1024@gmail.com>",
+  "author": {
+    "name": "Galin Kostov",
+    "email": "galioy1024@gmail.com"
+  },
   "license": "MIT"
 }
